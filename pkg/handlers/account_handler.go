@@ -6,7 +6,16 @@ import (
 	"log"
 	"net/http"
 )
-
+// @Summary Обновить или создать счёт
+// @Description Создаёт новый счёт или обновляет существующий
+// @Tags account
+// @Accept json
+// @Produce json
+// @Param request body services.UpsertAccountRequest true "Данные счёта"
+// @Success 200 {object} services.UpsertAccountResponse
+// @Failure 400 {string} string "Ошибка валидации или запроса"
+// @Router /api/account/upsert [post]
+// @Security BearerAuth
 func MakeUpsertAccountHandler(service *services.AccountService) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {

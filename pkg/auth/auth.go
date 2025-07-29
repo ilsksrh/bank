@@ -5,15 +5,21 @@ import (
 	"encoding/json"
 	"net/http"
 	"log"
+	"jusan_demo/pkg/services"
 )
 
 type AuthHandler struct {
-	Service *AuthService
+	Service        *AuthService
+	ProfileService *services.ProfileService
 }
 
-func NewAuthHandler(service *AuthService) *AuthHandler {
-	return &AuthHandler{Service: service}
+func NewAuthHandler(service *AuthService, profileService *services.ProfileService) *AuthHandler {
+	return &AuthHandler{
+		Service:        service,
+		ProfileService: profileService,
+	}
 }
+
 
 
 type RegisterRequest struct {
@@ -109,7 +115,7 @@ func (h *AuthHandler) GetProfile(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	profile, err := h.Service.GetProfile(userID)
+	profile, err := h.ProfileService.GetProfile(userID)
 	if err != nil {
 		log.Println("Ошибка получения профиля:", err)
 		http.Error(w, err.Error(), http.StatusNotFound)

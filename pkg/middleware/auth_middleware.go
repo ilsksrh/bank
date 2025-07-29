@@ -3,13 +3,18 @@ package middleware
 import (
 	"context"
 	"jusan_demo/pkg/auth"
+	"jusan_demo/pkg/models"
 	"net/http"
 	"strings"
 )
 
 type contextKey string
 
-const RoleKey contextKey = "userRole"
+const (
+	RoleKey    contextKey = "userRole"
+	UserKey    contextKey = "user"
+	UserIDKey  contextKey = "userID"
+)
 
 func AuthMiddleware(authService *auth.AuthService, requiredRoles ...string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
@@ -39,8 +44,16 @@ func AuthMiddleware(authService *auth.AuthService, requiredRoles ...string) func
 				return
 			}
 
+			
+			user := &models.AuthUser{
+				ID:    claims.UserID,
+				Email: claims.Email,
+				Role:  claims.Role,
+			}
+
 			ctx := context.WithValue(r.Context(), RoleKey, claims.Role)
-			ctx = context.WithValue(ctx, "userID", claims.UserID)
+			ctx = context.WithValue(ctx, UserIDKey, claims.UserID)
+			ctx = context.WithValue(ctx, UserKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})
 	}

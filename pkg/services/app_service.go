@@ -1,12 +1,12 @@
 package services
 
-import "jusan_demo/pkg/auth"
+
 
 type AppServices struct {
-	AuthService        *auth.AuthService
 	PersonService      *PersonService
 	AccountService     *AccountService
-	LoanService        *LoanService
+	LoanService       *LoanService
+	ProfileService    *ProfileService
 	TransactionService *TransactionService
 	CardService        *CardService
 	BranchService      *BranchService
@@ -15,7 +15,6 @@ type AppServices struct {
 
 func NewAppServices() *AppServices {
 	return &AppServices{
-		AuthService:        auth.NewAuthService(),
 		PersonService:      NewPersonService(),
 		AccountService:     NewAccountService(),
 		LoanService:        NewLoanService(),

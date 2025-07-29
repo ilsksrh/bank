@@ -10,6 +10,18 @@ func NewProductService() *ProductService {
 	return &ProductService{}
 }
 
+type Product struct {
+	ID             int     `db:"id" json:"id"`
+	Name           string  `db:"name" json:"name"`
+	Code           string  `db:"code" json:"code"`
+	Description    string  `db:"description" json:"description"`
+	InterestRate   float64 `db:"interest_rate" json:"interest_rate"`
+	MinAmount      float64 `db:"min_amount" json:"min_amount"`
+	MaxAmount      float64 `db:"max_amount" json:"max_amount"`
+	TermMinMonths  int     `db:"term_min_months" json:"term_min_months"`
+	TermMaxMonths  int     `db:"term_max_months" json:"term_max_months"`
+}
+
 type UpsertProductRequest struct {
 	Code           string   `json:"code"`
 	Name           string   `json:"name"`
@@ -41,4 +53,15 @@ func (s *ProductService) UpsertProduct(req UpsertProductRequest) (UpsertProductR
 		req.TypeCode, req.StateCode, req.RedactorID,
 	).StructScan(&resp)
 	return resp, err
+}
+
+func (s *ProductService) GetAllProducts() ([]Product, error) {
+	var products []Product
+	err := db.DB.Select(&products, `
+        SELECT id, name, code, description, interest_rate, min_amount, max_amount, 
+               term_min_months, term_max_months 
+        FROM product
+        WHERE state_id IN (SELECT id FROM states WHERE code = 'PR1') -- только активные
+    `)
+	return products, err
 }

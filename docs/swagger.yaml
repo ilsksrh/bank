@@ -1,0 +1,530 @@
+basePath: /
+definitions:
+  auth.LoginRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+    type: object
+  auth.RegisterRequest:
+    properties:
+      email:
+        type: string
+      password:
+        type: string
+      person_id:
+        type: integer
+      role:
+        type: string
+    type: object
+  auth.TokenResponse:
+    properties:
+      access_token:
+        type: string
+      refresh_token:
+        type: string
+    type: object
+  services.CreateLoanRequest:
+    properties:
+      amount:
+        type: number
+      interest_rate:
+        type: number
+      name:
+        type: string
+      person_id:
+        type: integer
+      product_id:
+        type: integer
+      redactor_id:
+        type: integer
+      start_date:
+        type: string
+      state_code:
+        type: string
+      term_months:
+        type: integer
+    type: object
+  services.CreateLoanResponse:
+    properties:
+      loanID:
+        type: integer
+    type: object
+  services.CreateTransactionRequest:
+    properties:
+      account_id:
+        type: integer
+      amount:
+        type: number
+      card_id:
+        type: integer
+      description:
+        type: string
+      loan_id:
+        type: integer
+      person_id:
+        type: integer
+      redactor_id:
+        type: integer
+      state_code:
+        type: string
+      type_code:
+        type: string
+    type: object
+  services.CreateTransactionResponse:
+    properties:
+      transactionID:
+        type: integer
+    type: object
+  services.UpdateLoanRequest:
+    properties:
+      amount:
+        type: number
+      interest_rate:
+        type: number
+      loan_id:
+        type: integer
+      name:
+        type: string
+      person_id:
+        type: integer
+      product_id:
+        type: integer
+      redactor_id:
+        type: integer
+      start_date:
+        type: string
+      state_code:
+        type: string
+      term_months:
+        type: integer
+    type: object
+  services.UpsertAccountRequest:
+    properties:
+      account_balance:
+        type: number
+      account_id:
+        type: integer
+      person_id:
+        type: integer
+      redactor_id:
+        type: integer
+      state_code:
+        type: string
+      type_code:
+        type: string
+    type: object
+  services.UpsertAccountResponse:
+    properties:
+      accountID:
+        type: integer
+      accountNumber:
+        type: string
+    type: object
+  services.UpsertBranchRequest:
+    properties:
+      city:
+        type: string
+      code:
+        type: string
+      location:
+        type: string
+      name:
+        type: string
+      phone_number:
+        type: string
+      redactor_id:
+        type: integer
+      state_code:
+        type: string
+    type: object
+  services.UpsertBranchResponse:
+    properties:
+      branchCode:
+        type: string
+      branchID:
+        type: integer
+    type: object
+  services.UpsertCardRequest:
+    properties:
+      account_id:
+        type: integer
+      card_id:
+        type: integer
+      card_number:
+        type: string
+      expiration_date:
+        type: string
+      is_default:
+        type: boolean
+      is_virtual:
+        type: boolean
+      issue_date:
+        type: string
+      person_id:
+        type: integer
+      redactor_id:
+        type: integer
+      state_code:
+        type: string
+      type_code:
+        type: string
+    type: object
+  services.UpsertCardResponse:
+    properties:
+      cardID:
+        type: integer
+      cardNumber:
+        type: string
+    type: object
+  services.UpsertPersonRequest:
+    properties:
+      branch_id:
+        type: integer
+      date_of_birth:
+        type: string
+      first_name:
+        type: string
+      last_name:
+        type: string
+      person_id:
+        type: integer
+      phone_number:
+        type: string
+      redactor_id:
+        type: integer
+      state_id:
+        type: string
+      uin:
+        type: string
+    type: object
+  services.UpsertProductRequest:
+    properties:
+      code:
+        type: string
+      description:
+        type: string
+      interest_rate:
+        type: number
+      max_amount:
+        type: number
+      min_amount:
+        type: number
+      name:
+        type: string
+      redactor_id:
+        type: integer
+      state_code:
+        type: string
+      term_max_months:
+        type: integer
+      term_min_months:
+        type: integer
+      type_code:
+        type: string
+    type: object
+  services.UpsertProductResponse:
+    properties:
+      code:
+        type: string
+      productID:
+        type: integer
+    type: object
+host: localhost:8080
+info:
+  contact: {}
+  description: API для банковской системы
+  title: Jusan Demo API
+  version: "1.0"
+paths:
+  /api/account/upsert:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт новый счёт или обновляет существующий
+      parameters:
+      - description: Данные счёта
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpsertAccountRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.UpsertAccountResponse'
+        "400":
+          description: Ошибка валидации или запроса
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить или создать счёт
+      tags:
+      - account
+  /api/branch/upsert:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет или обновляет данные филиала
+      parameters:
+      - description: Данные филиала
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpsertBranchRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.UpsertBranchResponse'
+        "400":
+          description: Ошибка валидации или запроса
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить или создать филиал
+      tags:
+      - branch
+  /api/card/upsert:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт или обновляет карту
+      parameters:
+      - description: Данные карты
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpsertCardRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.UpsertCardResponse'
+        "400":
+          description: Ошибка при создании карты
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить или создать карту
+      tags:
+      - card
+  /api/loan/create:
+    post:
+      consumes:
+      - application/json
+      description: Оформляет новый кредит на пользователя
+      parameters:
+      - description: Данные кредита
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.CreateLoanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.CreateLoanResponse'
+        "400":
+          description: Ошибка создания кредита
+          schema:
+            type: string
+      summary: Создать кредит
+      tags:
+      - loan
+  /api/loan/update:
+    post:
+      consumes:
+      - application/json
+      description: Обновляет данные по выданному кредиту
+      parameters:
+      - description: Обновление кредита
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpdateLoanRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "400":
+          description: Ошибка обновления кредита
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить кредит
+      tags:
+      - loan
+  /api/person/upsert:
+    post:
+      consumes:
+      - application/json
+      description: После создания профиля создаётся аккаунт и виртуальная карта
+      parameters:
+      - description: Данные пользователя
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpsertPersonRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Зарегистрирован
+          schema:
+            type: string
+        "400":
+          description: Ошибка запроса
+          schema:
+            type: string
+        "500":
+          description: Ошибка сервера
+          schema:
+            type: string
+      summary: Создание/обновление профиля с выпуском карты
+      tags:
+      - person
+  /api/product/upsert:
+    post:
+      consumes:
+      - application/json
+      description: Добавляет или обновляет продукт банка (кредит, услуга и т.п.)
+      parameters:
+      - description: Данные продукта
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.UpsertProductRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.UpsertProductResponse'
+        "400":
+          description: Ошибка при сохранении
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Обновить или создать продукт
+      tags:
+      - product
+  /api/transaction/create:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт финансовую транзакцию по счёту/карте/кредиту
+      parameters:
+      - description: Данные транзакции
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/services.CreateTransactionRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/services.CreateTransactionResponse'
+        "400":
+          description: Ошибка транзакции
+          schema:
+            type: string
+      security:
+      - BearerAuth: []
+      summary: Создать транзакцию
+      tags:
+      - transaction
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Авторизация по email и паролю, выдаёт access и refresh токены
+      parameters:
+      - description: Email и пароль
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/auth.TokenResponse'
+        "401":
+          description: Неверный пароль или пользователь
+          schema:
+            type: string
+      summary: Вход пользователя
+      tags:
+      - auth
+  /register:
+    post:
+      consumes:
+      - application/json
+      description: Создаёт нового пользователя с email, паролем и ролью
+      parameters:
+      - description: Данные для регистрации
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/auth.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            additionalProperties:
+              type: string
+            type: object
+        "409":
+          description: Email уже используется
+          schema:
+            type: string
+        "500":
+          description: Внутренняя ошибка
+          schema:
+            type: string
+      summary: Регистрация пользователя
+      tags:
+      - auth
+securityDefinitions:
+  BearerAuth:
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

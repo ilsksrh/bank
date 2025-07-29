@@ -4,7 +4,6 @@ import (
 	"errors"
 	"jusan_demo/pkg/config"
 	"jusan_demo/pkg/db"
-	"jusan_demo/pkg/models"
 	"time"
 	"github.com/lib/pq"
 	"log"
@@ -18,6 +17,7 @@ type TokenClaims struct {
 	UserID   int    `json:"user_id"`
 	PersonID int    `json:"person_id"`
 	Role     string `json:"role"`
+	Email    string `json:"email"`
 	jwt.RegisteredClaims
 }
 
@@ -27,6 +27,17 @@ func NewAuthService() *AuthService {
 	return &AuthService{}
 }
 
+// Register godoc
+// @Summary Регистрация пользователя
+// @Description Создаёт нового пользователя с email, паролем и ролью
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body RegisterRequest true "Данные для регистрации"
+// @Success 201 {object} map[string]string
+// @Failure 409 {string} string "Email уже используется"
+// @Failure 500 {string} string "Внутренняя ошибка"
+// @Router /register [post]
 func (s *AuthService) Register(email, password, role string, personID *int) error {
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
@@ -51,52 +62,73 @@ func (s *AuthService) Register(email, password, role string, personID *int) erro
 	return nil
 }
 
+
+// Login godoc
+// @Summary Вход пользователя
+// @Description Авторизация по email и паролю, выдаёт access и refresh токены
+// @Tags auth
+// @Accept json
+// @Produce json
+// @Param request body LoginRequest true "Email и пароль"
+// @Success 200 {object} TokenResponse
+// @Failure 401 {string} string "Неверный пароль или пользователь"
+// @Router /login [post]
+// In pkg/auth/auth_service.go
 func (s *AuthService) Login(email, password string) (string, string, error) {
-	var (
-		userID       int
-		personID     int
-		passwordHash string
-		role         string
-	)
+    var (
+        userID       int
+        personID     int
+        passwordHash string
+        role         string
+    )
 
-	err := db.DB.QueryRowx(`
-		SELECT id, password_hash, role
-		FROM auth_user
-		WHERE email = $1
-	`, email).Scan(&userID, &passwordHash, &role)
-	if err != nil {
-		return "", "", errors.New("пользователь не найден")
-	}
+    err := db.DB.QueryRow(`
+        SELECT id, password_hash, role
+        FROM auth_user
+        WHERE email = $1
+    `, email).Scan(&userID, &passwordHash, &role)
+    if err != nil {
+        return "", "", errors.New("пользователь не найден")
+    }
 
-	if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
-		return "", "", errors.New("неверный пароль")
-	}
+    if err := bcrypt.CompareHashAndPassword([]byte(passwordHash), []byte(password)); err != nil {
+        return "", "", errors.New("неверный пароль")
+    }
 
-	access, err := s.generateToken(userID, personID, role, config.AppConfig.AccessSecret, config.AppConfig.AccessTTL)
-	if err != nil {
-		return "", "", err
-	}
+    access, err := s.generateToken(userID, personID, role, config.AppConfig.AccessSecret, config.AppConfig.AccessTTL)
+    if err != nil {
+        return "", "", err
+    }
 
-	refresh, err := s.generateToken(userID, personID, role, config.AppConfig.RefreshSecret, config.AppConfig.RefreshTTL)
-	if err != nil {
-		return "", "", err
-	}
+    refresh, err := s.generateToken(userID, personID, role, config.AppConfig.RefreshSecret, config.AppConfig.RefreshTTL)
+    if err != nil {
+        return "", "", err
+    }
 
-	return access, refresh, nil
+    return access, refresh, nil
 }
 
+// In pkg/auth/auth_service.go
 func (s *AuthService) generateToken(userID, personID int, role, secret string, ttl time.Duration) (string, error) {
-	claims := TokenClaims{
-		UserID:   userID,
-		PersonID: personID,
-		Role:     role,
-		RegisteredClaims: jwt.RegisteredClaims{
-			ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
-			IssuedAt:  jwt.NewNumericDate(time.Now()),
-		},
-	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	return token.SignedString([]byte(secret))
+    // You'll need to get the email from the database when generating the token
+    var email string
+    err := db.DB.QueryRow("SELECT email FROM auth_user WHERE id = $1", userID).Scan(&email)
+    if err != nil {
+        return "", err
+    }
+
+    claims := TokenClaims{
+        UserID:   userID,
+        PersonID: personID,
+        Role:     role,
+        Email:    email, // Add the email to claims
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(time.Now().Add(ttl)),
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+        },
+    }
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString([]byte(secret))
 }
 
 func (s *AuthService) VerifyAccessToken(tokenStr string) (*TokenClaims, error) {
@@ -116,13 +148,4 @@ func (s *AuthService) verifyToken(tokenStr, key string) (*TokenClaims, error) {
 		return nil, errors.New("invalid token")
 	}
 	return claims, nil
-}
-
-func (s *AuthService) GetProfile(userID int) (*models.AuthUser, error) {
-	var user models.AuthUser
-	err := db.DB.Get(&user, `SELECT id, email, role, person_id FROM auth_user WHERE id = $1`, userID)
-	if err != nil {
-		return nil, errors.New("пользователь не найден")
-	}
-	return &user, nil
 }
